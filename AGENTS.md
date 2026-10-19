@@ -19,7 +19,7 @@
 
 ## This repo
 
-- **The contract of alerts and channels, no transport.** `Alert`, `Recipient`, the `Channel` port and the `Registry`. A concrete channel (email, WhatsApp) lives in its own repo (`veltylabs/email`, `veltylabs/whatsapp`) and implements `Channel`; this library never imports a network package.
+- **The contract of alerts and channels, no transport.** `Alert`, `Recipient`, the `Channel` port and the `Registry`. A concrete channel (email, WhatsApp) lives in its own repo (`veltylabs/email`, `veltylabs/whatsapp`) and implements `Channel`; this library never imports a network package. It may import `events`, `model` and `msgtype` (the contracts it builds on).
 - Compiles to both WASM and native: `webtyp/fmt` for errors, no `map`, no `reflect`, no stdlib `errors`/`strings`/`strconv`/`fmt`.
 - **Nothing fails silently.** An automation that needs a channel nobody configured is an error at start-up (`Validate`), and a delivery that cannot happen returns its error in the result; there is no "best effort" path that drops an alert.
 - Errors are typed string constants (`type Error string`), compared by value.

@@ -6,10 +6,34 @@ Alerts and delivery channels: the Channel port, recipients, and the rule that an
 ## The Contract
 
 A business needs to send notifications (Alerts) to recipients when events occur. The `notify` library provides the core contract:
-- `Alert`: what happened
+- `Alert`: what happened (with a `msgtype.Type` severity)
 - `Recipient`: who receives it
 - `Channel`: how they receive it
 - `Registry`: configured channels the application can use
+
+## Raising Alerts
+
+Any module can raise an alert by using the `events.Publisher` it already has:
+
+```go
+notify.Raise(publisher, notify.Alert{
+    Code: "stock.low",
+    Level: msgtype.Warning,
+    Subject: "Stock Low",
+    Body: "Item 123 is below minimum.",
+})
+```
+
+An alert manager then subscribes to these alerts to deliver them to the registry:
+
+```go
+notify.Subscribe(subscriber, func(a notify.Alert) {
+    // Look up who needs to receive this alert, and which channels it should use
+    // Then call registry.Deliver(...)
+}, func(err error) {
+    // Handle error
+})
+```
 
 ## Quick Start
 
@@ -17,6 +41,7 @@ A business needs to send notifications (Alerts) to recipients when events occur.
 package main
 
 import (
+	"webtyp.com/msgtype"
 	"webtyp.com/notify"
 	"webtyp.com/notify/notifytest"
 )
@@ -38,6 +63,7 @@ func main() {
 	// Deliver an alert
 	alert := notify.Alert{
 		Code: "stock.low",
+		Level: msgtype.Warning,
 		Subject: "Stock Low",
 		Body: "Item 123 is below minimum.",
 	}

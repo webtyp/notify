@@ -6,6 +6,8 @@ import (
 	"strings"
 	"sync"
 	"testing"
+
+	"webtyp.com/msgtype"
 	"webtyp.com/notify"
 	"webtyp.com/notify/notifytest"
 )
@@ -180,7 +182,7 @@ func TestRegistry_Deliver(t *testing.T) {
 	r.Register(ch1)
 	r.Register(ch2)
 
-	alert := notify.Alert{Code: "test", Subject: "subj", Body: "body"}
+	alert := notify.Alert{Code: "test", Subject: "subj", Body: "body", Level: msgtype.Info}
 	recip := notify.Recipient{ID: "r1"}
 
 	// No channels
@@ -228,7 +230,7 @@ func TestRegistry_ConcurrentDeliverLoad(t *testing.T) {
 	r.RegisterDriver(testDriver{kind: "working"})
 	r.Load([]notify.Config{{Name: "ch", Kind: "working", Enabled: true}}, dummySecretResolver{})
 
-	alert := notify.Alert{Code: "test", Subject: "subj", Body: "body"}
+	alert := notify.Alert{Code: "test", Subject: "subj", Body: "body", Level: msgtype.Info}
 	recip := notify.Recipient{ID: "r1"}
 
 	var wg sync.WaitGroup
