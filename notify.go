@@ -1,5 +1,10 @@
 package notify
 
+import (
+	"webtyp.com/model"
+	"webtyp.com/msgtype"
+)
+
 // Error is a failure of a notification rule. Constants, compared by value.
 type Error string
 
@@ -17,6 +22,7 @@ const (
 	ErrDuplicateDriver  Error = "notify: a driver of that kind is already registered"
 	ErrDriverMissing    Error = "notify: no driver for this kind of channel"
 	ErrConfig           Error = "notify: invalid channel configuration"
+	ErrAlertLevel       Error = "notify: an alert level must be Info, Warning or Error"
 )
 
 // Names of the channel kinds this ecosystem ships. The registry accepts any non-empty kind.
@@ -24,15 +30,6 @@ const (
 	ChannelEmail    = "email"
 	ChannelWhatsApp = "whatsapp"
 	ChannelInApp    = "in_app"
-)
-
-// Urgency orders how much an alert matters.
-type Urgency int8
-
-const (
-	Info     Urgency = 0
-	Warning  Urgency = 1
-	Critical Urgency = 2
 )
 
 // Recipient is who receives an alert. A channel uses the address it needs; ID is the recipient's id in its own module.
@@ -48,12 +45,13 @@ type Recipient struct {
 type Alert struct {
 	Code    string
 	Scope   string
-	Urgency Urgency
+	Level   msgtype.Type
 	Subject string
 	Body    string
 }
 
 // Validate returns ErrAlertCode if Code is empty and ErrAlertText if Subject or Body is empty.
+// It also returns ErrAlertLevel if Level is not Info, Warning, or Error.
 func (a Alert) Validate() error {
 	if a.Code == "" {
 		return ErrAlertCode
@@ -61,8 +59,30 @@ func (a Alert) Validate() error {
 	if a.Subject == "" || a.Body == "" {
 		return ErrAlertText
 	}
+	if a.Level != msgtype.Info && a.Level != msgtype.Warning && a.Level != msgtype.Error {
+		return ErrAlertLevel
+	}
 	return nil
 }
+
+// IsNil implements model.Encodable.
+func (a *Alert) IsNil() bool {
+	return a == nil
+}
+
+// EncodeFields implements model.Encodable.
+func (a *Alert) EncodeFields(w model.FieldWriter) {
+	if a == nil {
+		return
+	}
+	w.String("code", a.Code)
+	w.String("scope", a.Scope)
+	w.String("subject", a.Subject)
+	w.String("body", a.Body)
+	w.Int("level", int64(a.Level))
+}
+
+const TopicAlert = "notify.alert"
 
 // Channel delivers an alert to one recipient. Send returns nil only if the delivery was accepted by the service behind
 // the channel; any failure is returned, never swallowed. A Channel reads the address it needs from the Recipient and

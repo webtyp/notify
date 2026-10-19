@@ -8,7 +8,11 @@ To prevent this, the `notify` registry makes it a requirement that all channels 
 
 ## Concrete channels
 
-A concrete channel (like `email` or `whatsapp`) lives in its own repository and implements the `Channel` interface. The `notify` library remains agnostic to the underlying transport mechanism or API.
+A concrete channel (like `email` or `whatsapp`) lives in its own repository and implements the `Channel` interface. The `notify` library remains agnostic to the underlying transport mechanism or API. Why does `Channel` return errors instead of being an `events.Handler`? An `events.Handler` returns nothing and promises no delivery; a channel must return its error and a missing channel must be a loud error — that contract does not exist in `events`.
+
+## Alerts and Events
+
+An alert is an event. The severity of an alert is defined by `msgtype.Type` (the ecosystem's standard severity). Modules announce an alert using the `events.Publisher` they already have (`notify.Raise(publisher, alert)`). An alert manager then subscribes to these events (`notify.Subscribe`) and is responsible for determining the recipients, the configured channels, and calling `registry.Deliver`.
 
 ## Dynamic Configurations and Drivers
 
