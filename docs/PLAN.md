@@ -3,6 +3,8 @@ PLAN: "feat!: notify v0.2.0 — alert severity is msgtype.Type, and an Alert tra
 TAG: v0.2.0
 EXECUTOR: jules
 REVIEWER: none
+STATUS: running
+SESSION: 6062983766053481349
 ---
 
 > Read AGENTS.md at the repo root before any change.
