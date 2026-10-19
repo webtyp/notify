@@ -3,6 +3,8 @@ PLAN: "feat: notify v0.1.0 — Alert, Recipient, the Channel port, the Registry,
 TAG: v0.1.0
 EXECUTOR: jules
 REVIEWER: none
+STATUS: running
+SESSION: 15789690096219730598
 ---
 
 > Read AGENTS.md at the repo root before any change.
