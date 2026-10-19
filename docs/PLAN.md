@@ -3,8 +3,10 @@ PLAN: "feat!: notify v0.2.0 — alert severity is msgtype.Type, and an Alert tra
 TAG: v0.2.0
 EXECUTOR: jules
 REVIEWER: none
-STATUS: running
+STATUS: review
 SESSION: 6062983766053481349
+PR: https://github.com/webtyp/notify/pull/2
+REVIEWED_COMMIT: 6f7beeff14aeeefe88a6af5deaadfe54e5344aac
 ---
 
 > Read AGENTS.md at the repo root before any change.
