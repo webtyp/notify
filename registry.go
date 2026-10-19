@@ -26,7 +26,7 @@ func (r *Registry) Register(c Channel) error {
 			return ErrDuplicateChannel
 		}
 	}
-	// Note: We check if it conflicts with loaded ones as well
+	// A name already built from a stored configuration is taken as well.
 	for _, existing := range r.loaded {
 		if existing.Name() == c.Name() {
 			return ErrDuplicateChannel
@@ -40,7 +40,7 @@ func (r *Registry) Register(c Channel) error {
 // RegisterDriver adds a driver. An empty kind → ErrChannelName; a kind already registered → ErrDuplicateDriver.
 func (r *Registry) RegisterDriver(d Driver) error {
 	if d.Kind() == "" {
-		return ErrChannelName // Assuming ErrChannelName is used for empty kind based on prompt "empty kind → ErrChannelName"
+		return ErrChannelName
 	}
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -121,7 +121,7 @@ func (r *Registry) Load(configs []Config, secrets SecretResolver) error {
 
 		ch, err := driver.New(config, secrets)
 		if err != nil {
-			errors = append(errors, fmt.Sprintf("%s: %s", config.Name, ErrConfig))
+			errors = append(errors, fmt.Sprintf("%s: %s: %s", config.Name, ErrConfig, err))
 			continue
 		}
 
@@ -164,7 +164,7 @@ func (r *Registry) Load(configs []Config, secrets SecretResolver) error {
 		for _, e := range errors {
 			msg += "\n" + e
 		}
-		return Error(msg) // Need a way to return multiple errors as one Error. Returning custom Error.
+		return Error(msg)
 	}
 
 	return nil
