@@ -27,12 +27,13 @@ notify.Raise(publisher, notify.Alert{
 An alert manager then subscribes to these alerts to deliver them to the registry:
 
 ```go
-notify.Subscribe(subscriber, func(a notify.Alert) {
+subscription, err := notify.Subscribe(subscriber, func(a notify.Alert) {
     // Look up who needs to receive this alert, and which channels it should use
     // Then call registry.Deliver(...)
 }, func(err error) {
     // Handle error
 })
+// subscription.Cancel() stops receiving alerts.
 ```
 
 ## Quick Start

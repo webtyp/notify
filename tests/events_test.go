@@ -16,16 +16,16 @@ type recordingFieldWriter struct {
 	fields map[string]any
 }
 
-func (w *recordingFieldWriter) String(k, v string) { w.fields[k] = v }
+func (w *recordingFieldWriter) String(k, v string)    { w.fields[k] = v }
 func (w *recordingFieldWriter) Int(k string, v int64) { w.fields[k] = v }
 
 // Implement dummy methods for other interface requirements of model.FieldWriter
-func (w *recordingFieldWriter) Float(k string, v float64) {}
-func (w *recordingFieldWriter) Bool(k string, v bool) {}
-func (w *recordingFieldWriter) Bytes(k string, v []byte) {}
-func (w *recordingFieldWriter) Null(k string) {}
-func (w *recordingFieldWriter) Raw(k, v string) {}
-func (w *recordingFieldWriter) Object(k string, v model.Encodable) {}
+func (w *recordingFieldWriter) Float(k string, v float64)               {}
+func (w *recordingFieldWriter) Bool(k string, v bool)                   {}
+func (w *recordingFieldWriter) Bytes(k string, v []byte)                {}
+func (w *recordingFieldWriter) Null(k string)                           {}
+func (w *recordingFieldWriter) Raw(k, v string)                         {}
+func (w *recordingFieldWriter) Object(k string, v model.Encodable)      {}
 func (w *recordingFieldWriter) Array(k string, n int) model.ArrayWriter { return nil }
 
 func TestAlert_IsNil(t *testing.T) {
@@ -80,7 +80,7 @@ func TestAlert_EncodeFields(t *testing.T) {
 // testPayload implements model.Encodable for testing wrong payload types
 type testPayload string
 
-func (p testPayload) IsNil() bool { return false }
+func (p testPayload) IsNil() bool                      { return false }
 func (p testPayload) EncodeFields(w model.FieldWriter) {}
 
 func TestEvents_Raise(t *testing.T) {
@@ -117,19 +117,19 @@ func TestEvents_Subscribe(t *testing.T) {
 		rcvdErr = append(rcvdErr, err)
 	}
 
-	err := notify.Subscribe(broker, h, onError)
+	_, err := notify.Subscribe(broker, h, onError)
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
 	}
 
 	// subscribe nil handler
-	err = notify.Subscribe(broker, nil, onError)
+	_, err = notify.Subscribe(broker, nil, onError)
 	if err != notify.ErrHandler {
 		t.Errorf("expected ErrHandler, got %v", err)
 	}
 
 	// subscribe nil error handler
-	err = notify.Subscribe(broker, h, nil)
+	_, err = notify.Subscribe(broker, h, nil)
 	if err != notify.ErrHandler {
 		t.Errorf("expected ErrHandler, got %v", err)
 	}
@@ -139,7 +139,7 @@ func TestEvents_Subscribe(t *testing.T) {
 	h2 := func(a notify.Alert) {
 		rcvd2 = append(rcvd2, a)
 	}
-	notify.Subscribe(broker, h2, onError)
+	_, _ = notify.Subscribe(broker, h2, onError)
 
 	validAlert := notify.Alert{Code: "test", Subject: "subj", Body: "body", Level: msgtype.Info}
 	notify.Raise(broker, validAlert)
@@ -156,5 +156,24 @@ func TestEvents_Subscribe(t *testing.T) {
 
 	if len(rcvdErr) != 2 || rcvdErr[0] != notify.ErrPayload || rcvdErr[1] != notify.ErrPayload {
 		t.Errorf("expected both subscribers to report ErrPayload, got %v", rcvdErr)
+	}
+}
+
+func TestEvents_SubscribeCancel(t *testing.T) {
+	broker := &mock.Broker{}
+
+	var rcvd int
+	sub, err := notify.Subscribe(broker, func(notify.Alert) { rcvd++ }, func(error) {})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	alert := notify.Alert{Code: "test", Subject: "subj", Body: "body", Level: msgtype.Warning}
+	notify.Raise(broker, alert)
+	sub.Cancel()
+	notify.Raise(broker, alert)
+
+	if rcvd != 1 {
+		t.Errorf("expected 1 alert before Cancel and none after, got %d", rcvd)
 	}
 }

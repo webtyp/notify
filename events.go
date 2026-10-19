@@ -21,17 +21,17 @@ func Raise(p events.Publisher, a Alert) error {
 // ErrHandler = "notify: Subscribe needs a handler and an error handler" (an error is never dropped silently).
 // A payload on TopicAlert that is not an *Alert goes to onError(ErrPayload) with
 // ErrPayload = "notify: the payload of a notify.alert event is not an alert".
-func Subscribe(s events.Subscriber, h func(Alert), onError func(error)) error {
+// The returned Subscription stops delivery with Cancel.
+func Subscribe(s events.Subscriber, h func(Alert), onError func(error)) (events.Subscription, error) {
 	if h == nil || onError == nil {
-		return ErrHandler
+		return nil, ErrHandler
 	}
-	s.Subscribe(TopicAlert, func(e events.Event) {
+	return s.Subscribe(TopicAlert, func(e events.Event) {
 		a, ok := e.Payload.(*Alert)
 		if !ok || a == nil {
 			onError(ErrPayload)
 			return
 		}
 		h(*a)
-	})
-	return nil
+	}), nil
 }
