@@ -6,7 +6,7 @@ REVIEWER: none
 STATUS: review
 SESSION: 15789690096219730598
 PR: https://github.com/webtyp/notify/pull/1
-REVIEWED_COMMIT: 45e57e6e71f56b8991dd3c6cbe7fe423b922c530
+REVIEWED_COMMIT: f301909a57dfc0132e57c74d28f6bede70d689f2
 ---
 
 > Read AGENTS.md at the repo root before any change.
