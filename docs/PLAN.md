@@ -3,8 +3,10 @@ PLAN: "feat: notify v0.1.0 — Alert, Recipient, the Channel port, the Registry,
 TAG: v0.1.0
 EXECUTOR: jules
 REVIEWER: none
-STATUS: running
+STATUS: review
 SESSION: 15789690096219730598
+PR: https://github.com/webtyp/notify/pull/1
+REVIEWED_COMMIT: 45e57e6e71f56b8991dd3c6cbe7fe423b922c530
 ---
 
 > Read AGENTS.md at the repo root before any change.
