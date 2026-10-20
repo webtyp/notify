@@ -8,3 +8,5 @@ require (
 	webtyp.com/model v0.2.4
 	webtyp.com/msgtype v0.1.0
 )
+
+require webtyp.com/lang v0.1.7 // indirect

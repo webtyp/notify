@@ -11,6 +11,8 @@ type Registry struct {
 	hardcoded []Channel
 	loaded    []Channel
 	drivers   []Driver
+	areas     []Area
+	kinds     []Kind
 }
 
 // Register adds a channel directly. An empty name → ErrChannelName; a name already registered → ErrDuplicateChannel.
@@ -35,6 +37,92 @@ func (r *Registry) Register(c Channel) error {
 
 	r.hardcoded = append(r.hardcoded, c)
 	return nil
+}
+
+// RegisterArea adds an area. An empty code → ErrAreaCode; a code already registered → ErrDuplicateArea.
+func (r *Registry) RegisterArea(a Area) error {
+	if a.Code == "" {
+		return ErrAreaCode
+	}
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	for _, existing := range r.areas {
+		if existing.Code == a.Code {
+			return ErrDuplicateArea
+		}
+	}
+
+	r.areas = append(r.areas, a)
+	return nil
+}
+
+// RegisterKind adds a kind. An empty code → ErrKindCode; an empty name → ErrKindText; a code already registered → ErrDuplicateKind.
+// A kind with no area is only allowed if no areas are registered at all.
+func (r *Registry) RegisterKind(k Kind) error {
+	if k.Code == "" {
+		return ErrKindCode
+	}
+	if string(k.Name) == "" { // lang.Text is a string alias, but check just in case
+		return ErrKindText
+	}
+
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	for _, existing := range r.kinds {
+		if existing.Code == k.Code {
+			return ErrDuplicateKind
+		}
+	}
+
+	if len(r.areas) > 0 {
+		foundArea := false
+		for _, area := range r.areas {
+			if area.Code == k.Area {
+				foundArea = true
+				break
+			}
+		}
+		if !foundArea {
+			return ErrAreaMissing
+		}
+	} else if k.Area != "" {
+		return ErrAreaMissing
+	}
+
+	r.kinds = append(r.kinds, k)
+	return nil
+}
+
+// Kinds returns a snapshot of all registered kinds.
+func (r *Registry) Kinds() []Kind {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	kinds := make([]Kind, len(r.kinds))
+	copy(kinds, r.kinds)
+	return kinds
+}
+
+// Areas returns a snapshot of all registered areas.
+func (r *Registry) Areas() []Area {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	areas := make([]Area, len(r.areas))
+	copy(areas, r.areas)
+	return areas
+}
+
+// KindOf looks up a kind by its code.
+func (r *Registry) KindOf(code string) (Kind, bool) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	for _, k := range r.kinds {
+		if k.Code == code {
+			return k, true
+		}
+	}
+	return Kind{}, false
 }
 
 // RegisterDriver adds a driver. An empty kind → ErrChannelName; a kind already registered → ErrDuplicateDriver.
