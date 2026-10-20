@@ -2,6 +2,8 @@
 PLAN: "feat: alert kind catalog, area catalog, and the alert's origin (module + record)"
 EXECUTOR: jules
 REVIEWER: none
+STATUS: running
+SESSION: 2370160064364991061
 ---
 
 > Read AGENTS.md at the repo root before any change. This plan is complete: do not guess; if something does
