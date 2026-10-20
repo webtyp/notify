@@ -7,9 +7,30 @@ Alerts and delivery channels: the Channel port, recipients, and the rule that an
 
 A business needs to send notifications (Alerts) to recipients when events occur. The `notify` library provides the core contract:
 - `Alert`: what happened (with a `msgtype.Type` severity)
+- `Source`: what produced the alert (the module and record ID)
+- `Kind`: a catalog entry explaining an alert code
+- `Area`: a business area an alert belongs to
 - `Recipient`: who receives it
 - `Channel`: how they receive it
 - `Registry`: configured channels the application can use
+
+## Catalog
+
+Modules register areas and kinds at startup so a screen can list and explain every possible alert without free-text lookup.
+
+```go
+registry.RegisterArea(notify.Area{
+	Code: "supplies",
+	Name: lang.Text("Insumos"),
+})
+
+registry.RegisterKind(notify.Kind{
+	Code: "stock.low",
+	Name: lang.Text("Stock bajo"),
+	Help: lang.Text("Se avisa cuando el total de un ítem cae bajo su mínimo"),
+	Area: "supplies",
+})
+```
 
 ## Raising Alerts
 
@@ -67,6 +88,7 @@ func main() {
 		Level: msgtype.Warning,
 		Subject: "Stock Low",
 		Body: "Item 123 is below minimum.",
+		Source: notify.Ref{Type: "supply_item", ID: "123"},
 	}
 	recipient := notify.Recipient{ID: "usr1", Email: "admin@example.com"}
 

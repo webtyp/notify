@@ -2,8 +2,10 @@
 PLAN: "feat: alert kind catalog, area catalog, and the alert's origin (module + record)"
 EXECUTOR: jules
 REVIEWER: none
-STATUS: running
+STATUS: review
 SESSION: 2370160064364991061
+PR: https://github.com/webtyp/notify/pull/3
+REVIEWED_COMMIT: c335820293c443c11f58426bf1d19f99a08264b6
 ---
 
 > Read AGENTS.md at the repo root before any change. This plan is complete: do not guess; if something does

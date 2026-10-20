@@ -21,6 +21,11 @@ func TestAlert_Validate(t *testing.T) {
 			want:  nil,
 		},
 		{
+			name:  "valid with source",
+			alert: notify.Alert{Code: "test", Subject: "Hello", Body: "World", Level: msgtype.Info, Source: notify.Ref{Type: "item", ID: "123"}},
+			want:  nil,
+		},
+		{
 			name:  "valid (Warning)",
 			alert: notify.Alert{Code: "test", Subject: "Hello", Body: "World", Level: msgtype.Warning},
 			want:  nil,

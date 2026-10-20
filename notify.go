@@ -23,6 +23,13 @@ const (
 	ErrDriverMissing    Error = "notify: no driver for this kind of channel"
 	ErrConfig           Error = "notify: invalid channel configuration"
 	ErrAlertLevel       Error = "notify: an alert level must be Info, Warning or Error"
+	ErrKindCode         Error = "notify: a kind needs a code"
+	ErrKindText         Error = "notify: a kind needs a name"
+	ErrDuplicateKind    Error = "notify: a kind with that code is already registered"
+	ErrAreaCode         Error = "notify: an area needs a code"
+	ErrDuplicateArea    Error = "notify: an area with that code is already registered"
+	ErrAreaMissing      Error = "notify: the area is not registered"
+	ErrKindMissing      Error = "notify: the code has no registered kind"
 )
 
 // Names of the channel kinds this ecosystem ships. The registry accepts any non-empty kind.
@@ -40,6 +47,13 @@ type Recipient struct {
 	Phone string // international format, digits with a leading +
 }
 
+// Ref identifies a thing in the module that owns it. Same shape as webtyp.com/money.Ref — kept separate
+// (notify must not import money) rather than shared, since the two libraries have no other relationship.
+type Ref struct {
+	Type string
+	ID   string
+}
+
 // Alert is what happened that someone must know. Code identifies the rule that raised it ("stock.below_minimum");
 // Scope is the area of the business it belongs to, so a report can show only what a person is responsible for.
 type Alert struct {
@@ -48,6 +62,10 @@ type Alert struct {
 	Level   msgtype.Type
 	Subject string
 	Body    string
+	// Source names what produced this alert, mirroring webtyp.com/money.Ref: Type is the owning module's own
+	// name for the thing ("supply_item", "agreement"), ID its id there. Both empty means no origin (a manual
+	// alert raised by a person, not tied to a record).
+	Source  Ref
 }
 
 // Validate returns ErrAlertCode if Code is empty and ErrAlertText if Subject or Body is empty.
@@ -80,6 +98,8 @@ func (a *Alert) EncodeFields(w model.FieldWriter) {
 	w.String("subject", a.Subject)
 	w.String("body", a.Body)
 	w.Int("level", int64(a.Level))
+	w.String("source_type", a.Source.Type)
+	w.String("source_id", a.Source.ID)
 }
 
 const TopicAlert = "notify.alert"

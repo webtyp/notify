@@ -56,6 +56,7 @@ func TestAlert_EncodeFields(t *testing.T) {
 		Subject: "sub1",
 		Body:    "body1",
 		Level:   msgtype.Warning,
+		Source:  notify.Ref{Type: "t1", ID: "id1"},
 	}
 
 	b.EncodeFields(w)
@@ -74,6 +75,12 @@ func TestAlert_EncodeFields(t *testing.T) {
 	}
 	if w.fields["level"] != int64(msgtype.Warning) {
 		t.Errorf("expected level %v, got %v", int64(msgtype.Warning), w.fields["level"])
+	}
+	if w.fields["source_type"] != "t1" {
+		t.Errorf("expected source_type t1, got %v", w.fields["source_type"])
+	}
+	if w.fields["source_id"] != "id1" {
+		t.Errorf("expected source_id id1, got %v", w.fields["source_id"])
 	}
 }
 
