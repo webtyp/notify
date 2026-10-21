@@ -2,6 +2,8 @@
 PLAN: "feat!: a Driver declares its label and the fields it needs, so one screen configures every sending channel"
 EXECUTOR: jules
 REVIEWER: none
+STATUS: running
+SESSION: 15697860841372215455
 ---
 
 > Read AGENTS.md at the repo root before any change.
