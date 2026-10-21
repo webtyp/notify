@@ -101,9 +101,27 @@ func main() {
 }
 ```
 
-## Dynamic Configurations
+## Dynamic Configurations and Drivers
 
-Channels can also be loaded from dynamic configurations via drivers.
+Channels can also be loaded from dynamic configurations via drivers. A driver declares its label and the configuration fields it needs from the person setting it up:
+
+```go
+// Field is one value a driver needs to build a channel.
+type Field struct {
+	Key      string    // e.g. "from", "api_token"
+	Label    lang.Text
+	Help     lang.Text
+	Secret   bool
+	Required bool
+}
+
+type Driver interface {
+	Kind() string
+	Label() lang.Text
+	Fields() []Field
+	New(c Config, secrets SecretResolver) (Channel, error)
+}
+```
 
 ```go
 // Loading channels from stored configurations without a restart

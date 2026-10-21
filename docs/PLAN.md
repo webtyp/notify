@@ -2,8 +2,10 @@
 PLAN: "feat!: a Driver declares its label and the fields it needs, so one screen configures every sending channel"
 EXECUTOR: jules
 REVIEWER: none
-STATUS: running
+STATUS: review
 SESSION: 15697860841372215455
+PR: https://github.com/webtyp/notify/pull/4
+REVIEWED_COMMIT: e4ba077bd85ca9dd6d26a0585a8a9c896350aed4
 ---
 
 > Read AGENTS.md at the repo root before any change.

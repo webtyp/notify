@@ -9,4 +9,4 @@ require (
 	webtyp.com/msgtype v0.1.0
 )
 
-require webtyp.com/lang v0.1.7 // indirect
+require webtyp.com/lang v0.1.7
