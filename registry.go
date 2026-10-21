@@ -3,6 +3,7 @@ package notify
 import (
 	"sync"
 	"webtyp.com/fmt"
+	"webtyp.com/lang"
 )
 
 // Registry holds the channels the application configured and the drivers to build them.
@@ -130,6 +131,21 @@ func (r *Registry) RegisterDriver(d Driver) error {
 	if d.Kind() == "" {
 		return ErrChannelName
 	}
+	fields := d.Fields()
+	for i, f := range fields {
+		if f.Key == "" {
+			return ErrFieldKey
+		}
+		if f.Label == "" {
+			return ErrFieldLabel
+		}
+		for j := 0; j < i; j++ {
+			if fields[j].Key == f.Key {
+				return ErrDuplicateField
+			}
+		}
+	}
+
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -141,6 +157,29 @@ func (r *Registry) RegisterDriver(d Driver) error {
 
 	r.drivers = append(r.drivers, d)
 	return nil
+}
+
+// DriverKinds returns the registered driver kinds, in registration order.
+func (r *Registry) DriverKinds() []string {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	kinds := make([]string, len(r.drivers))
+	for i, d := range r.drivers {
+		kinds[i] = d.Kind()
+	}
+	return kinds
+}
+
+// DriverOf returns the label and fields of a registered driver kind; ok is false if none.
+func (r *Registry) DriverOf(kind string) (label lang.Text, fields []Field, ok bool) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	for _, d := range r.drivers {
+		if d.Kind() == kind {
+			return d.Label(), d.Fields(), true
+		}
+	}
+	return "", nil, false
 }
 
 // Has reports whether a channel with that name is registered.
@@ -204,6 +243,33 @@ func (r *Registry) Load(configs []Config, secrets SecretResolver) error {
 
 		if driver == nil {
 			errors = append(errors, fmt.Sprintf("%s: %s", config.Name, ErrDriverMissing))
+			continue
+		}
+
+		var missingKey string
+		for _, f := range driver.Fields() {
+			if !f.Required {
+				continue
+			}
+			found := false
+			settings := config.Settings
+			if f.Secret {
+				settings = config.Secrets
+			}
+			for _, s := range settings {
+				if s.Key == f.Key && s.Value != "" {
+					found = true
+					break
+				}
+			}
+			if !found {
+				missingKey = f.Key
+				break
+			}
+		}
+
+		if missingKey != "" {
+			errors = append(errors, fmt.Sprintf("%s: %s: missing %s", config.Name, ErrConfig, missingKey))
 			continue
 		}
 

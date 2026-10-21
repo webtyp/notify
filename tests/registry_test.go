@@ -10,6 +10,7 @@ import (
 	"webtyp.com/msgtype"
 	"webtyp.com/notify"
 	"webtyp.com/notify/notifytest"
+	"webtyp.com/lang"
 )
 
 type dummySecretResolver struct{}
@@ -22,9 +23,12 @@ type testDriver struct {
 	kind     string
 	failNew  bool
 	nameFail bool
+	fields   []notify.Field
 }
 
 func (d testDriver) Kind() string { return d.kind }
+func (d testDriver) Label() lang.Text { return "Test" }
+func (d testDriver) Fields() []notify.Field { return d.fields }
 func (d testDriver) New(c notify.Config, secrets notify.SecretResolver) (notify.Channel, error) {
 	if d.failNew {
 		return nil, notify.ErrConfig
@@ -254,4 +258,80 @@ func TestRegistry_ConcurrentDeliverLoad(t *testing.T) {
 	}
 
 	wg.Wait()
+}
+
+func TestRegistry_DriverFields(t *testing.T) {
+	r := &notify.Registry{}
+
+	// OK
+	err := r.RegisterDriver(testDriver{kind: "email", fields: []notify.Field{{Key: "from", Label: "Sender"}}})
+	if err != nil {
+		t.Errorf("expected no error, got %v", err)
+	}
+
+	// Key: "" -> ErrFieldKey
+	err = r.RegisterDriver(testDriver{kind: "sms", fields: []notify.Field{{Key: "", Label: "Sender"}}})
+	if err != notify.ErrFieldKey {
+		t.Errorf("expected ErrFieldKey, got %v", err)
+	}
+
+	// Duplicate Key -> ErrDuplicateField
+	err = r.RegisterDriver(testDriver{kind: "sms", fields: []notify.Field{{Key: "from", Label: "A"}, {Key: "from", Label: "B"}}})
+	if err != notify.ErrDuplicateField {
+		t.Errorf("expected ErrDuplicateField, got %v", err)
+	}
+
+	// Label: "" -> ErrFieldLabel
+	err = r.RegisterDriver(testDriver{kind: "sms", fields: []notify.Field{{Key: "from", Label: ""}}})
+	if err != notify.ErrFieldLabel {
+		t.Errorf("expected ErrFieldLabel, got %v", err)
+	}
+
+	r.RegisterDriver(testDriver{kind: "whatsapp"})
+
+	kinds := r.DriverKinds()
+	if len(kinds) != 2 || kinds[0] != "email" || kinds[1] != "whatsapp" {
+		t.Errorf("expected [email whatsapp], got %v", kinds)
+	}
+
+	lbl, fields, ok := r.DriverOf("email")
+	if !ok || lbl != "Test" || len(fields) != 1 || fields[0].Key != "from" {
+		t.Errorf("DriverOf(email) unexpected result: %v %v %v", lbl, fields, ok)
+	}
+
+	_, _, ok = r.DriverOf("sms")
+	if ok {
+		t.Errorf("expected ok=false for sms")
+	}
+
+	// Load with missing required field
+	r2 := &notify.Registry{}
+	r2.RegisterDriver(testDriver{
+		kind: "req",
+		fields: []notify.Field{{Key: "needed", Label: "Needed", Required: true}},
+		failNew: true, // we want to make sure it fails before calling New
+	})
+
+	err = r2.Load([]notify.Config{
+		{Name: "c1", Kind: "req", Enabled: true},
+	}, dummySecretResolver{})
+
+	if err == nil || !strings.Contains(err.Error(), "c1: notify: invalid channel configuration: missing needed") {
+		t.Errorf("expected missing field error, got %v", err)
+	}
+
+	// Load with required present
+	r3 := &notify.Registry{}
+	r3.RegisterDriver(testDriver{
+		kind: "req",
+		fields: []notify.Field{{Key: "needed", Label: "Needed", Required: true}},
+	})
+
+	err = r3.Load([]notify.Config{
+		{Name: "c2", Kind: "req", Enabled: true, Settings: []notify.Setting{{Key: "needed", Value: "present"}}},
+	}, dummySecretResolver{})
+
+	if err != nil {
+		t.Errorf("expected no error when required present, got %v", err)
+	}
 }

@@ -17,7 +17,24 @@ An alert is an event. The severity of an alert is defined by `msgtype.Type` (the
 ## Dynamic Configurations and Drivers
 
 Channels can be loaded dynamically from the database.
-- A **Kind** refers to compiled code (a Driver) that knows how to create a specific type of channel (e.g., `email`, `whatsapp`).
+- A **Kind** refers to compiled code (a Driver) that knows how to create a specific type of channel (e.g., `email`, `whatsapp`). A driver declares its label and the configuration fields it needs:
+  ```go
+  // Field is one value a driver needs to build a channel.
+  type Field struct {
+	Key      string    // e.g. "from", "api_token"
+	Label    lang.Text
+	Help     lang.Text
+	Secret   bool
+	Required bool
+  }
+
+  type Driver interface {
+	Kind() string
+	Label() lang.Text
+	Fields() []Field
+	New(c Config, secrets SecretResolver) (Channel, error)
+  }
+  ```
 - An **Instance** is a configured version of a kind, usually stored as a database row (represented by `Config`). For example, you might have multiple email channel instances for different purposes.
 
 This separation allows you to add or modify instances (e.g., updating credentials or changing sender addresses) without rebuilding or restarting the application.
