@@ -1,4 +1,3 @@
-//go:build !wasm
 
 package notifytest
 
