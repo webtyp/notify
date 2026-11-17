@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"webtyp.com/events"
-	"webtyp.com/events/mock"
+	"webtyp.com/events/inprocess"
 	"webtyp.com/model"
 	"webtyp.com/msgtype"
 	"webtyp.com/notify"
@@ -91,7 +91,7 @@ func (p testPayload) IsNil() bool                      { return false }
 func (p testPayload) EncodeFields(w model.FieldWriter) {}
 
 func TestEvents_Raise(t *testing.T) {
-	broker := &mock.Broker{}
+	broker := &inprocess.Broker{}
 
 	// Invalid alert
 	invalidAlert := notify.Alert{Code: ""}
@@ -112,7 +112,7 @@ func TestEvents_Raise(t *testing.T) {
 }
 
 func TestEvents_Subscribe(t *testing.T) {
-	broker := &mock.Broker{}
+	broker := &inprocess.Broker{}
 
 	var rcvd []notify.Alert
 	h := func(a notify.Alert) {
@@ -167,7 +167,7 @@ func TestEvents_Subscribe(t *testing.T) {
 }
 
 func TestEvents_SubscribeCancel(t *testing.T) {
-	broker := &mock.Broker{}
+	broker := &inprocess.Broker{}
 
 	var rcvd int
 	sub, err := notify.Subscribe(broker, func(notify.Alert) { rcvd++ }, func(error) {})
