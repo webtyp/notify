@@ -113,7 +113,7 @@ func TestRegistry_KindsAndAreas(t *testing.T) {
 		t.Errorf("mutation of slice element affected registry")
 	}
 
-	areas = append(areas, notify.Area{Code: "new"})
+	_ = append(areas, notify.Area{Code: "new"})
 	areas3 := r.Areas()
 	if len(areas3) != 1 {
 		t.Errorf("append to slice affected registry")
@@ -125,7 +125,7 @@ func TestRegistry_KindsAndAreas(t *testing.T) {
 		t.Errorf("mutation of slice element affected registry")
 	}
 
-	kinds = append(kinds, notify.Kind{Code: "new"})
+	_ = append(kinds, notify.Kind{Code: "new"})
 	kinds3 := r.Kinds()
 	if len(kinds3) != 1 {
 		t.Errorf("append to slice affected registry")
